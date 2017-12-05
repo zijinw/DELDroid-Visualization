@@ -101,7 +101,7 @@ bubbleObj.append("text")
 	    			csvName = csvName.concat("-");
 	    			csvName = csvName.concat(csvNameSplit[i].toLowerCase());
 	    		}
-	    		csvName = csvName.concat("-1.csv");
+	    		csvName = csvName.concat("-5.csv");
 	    		drawChart(csvName);
 	    	}
     		
@@ -111,6 +111,7 @@ bubbleObj.append("text")
 
 smallBubbles = function() {
 	d3.select("svg").remove();
+  d3.select(".mainWords").remove();
 
 	var w1 = window.innerWidth;
 	var h1 = Math.ceil(w1 * 0.078);
@@ -185,7 +186,7 @@ smallBubbles = function() {
 		    			csvName = csvName.concat("-");
 		    			csvName = csvName.concat(csvNameSplit[i].toLowerCase());
 		    		}
-		    		csvName = csvName.concat("-1.csv");
+		    		csvName = csvName.concat("-5.csv");
 		    		drawChart(csvName);
 	    		}
 	    	}
