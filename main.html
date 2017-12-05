@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>DELDroid Visualization</title>
+	<style type="text/css">
+		#mainBubble {
+			background: #fff;
+			border: solid 1px #ddd;
+			box-shadow: 0 0 4px rgba(0, 0, 0, 0);
+			font: 10px sans-serif;
+		    height: 1000px;
+			position: relative;
+			width: 100%;
+		}
+
+		#mainBubble svg {
+			left: 0;
+			position: absolute;
+			top: 0;
+		}
+
+		#mainBubble circle.topBubble {
+			fill: #aaa;
+			stroke: #666;
+			stroke-width: 1.5px;
+		}
+
+		#bubbleItemNote {
+			font-style: italic;
+		}
+
+		rect.bordered {
+        	stroke: #E6E6E6;
+        	stroke-width:2px;   
+      	}
+
+      	text.mono {
+       		font-size: 9pt;
+        	font-family: sans-serif;
+        	fill: #aaa;
+      	}
+
+      	text.axis {
+        	fill: #000;
+      	}
+
+      	#chart {
+      		margin-top: 20px;
+      	}
+
+      	td {
+			padding: 1px;
+			padding-left: 6px;
+			padding-top: 5px;
+		}
+
+		caption {
+			font-size: 18px;
+			font-weight: bold;
+			padding: 10px;
+			border-bottom: 1px solid grey;
+		}
+
+		table {
+			margin-left: 900px; 
+			margin-top: -700px;
+			font: 12px sans-serif;
+		}
+	</style>
+	<script type="text/javascript" src="http://d3js.org/d3.v3.js" charset="utf-8"></script>
+	<script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+</head>
+<body>
+	<div id="mainBubble"></div>
+	<div id="chartArea"></div>
+	<div id="chordArea"></div>
+	<!-- <div id="detailsArea" style="float: left;"></div> -->
+	<script type="text/javascript" src="main.js"></script>
+	<script type="text/javascript" src="matrix.js"></script>
+	<script type="text/javascript" src="chord.js"></script>
+</body>
+</html>
+
+<!-- if you want to change to another system analysis, you should change the following places:
+1. main.js: Line 101, csvName = csvName.concat("-1.csv");
+2. main.js: Line 185, csvName = csvName.concat("-1.csv");
+3. chord.js: Line 1, var datasets = ["domain-explicit-communication-5.csv"...];
+4. chord.js: Line 399, xmlDoc.load("analysisResults-1.xml"); -->
