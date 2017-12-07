@@ -29,7 +29,7 @@ var svg = d3.select("#mainBubble").append("svg")
     .attr("height", h)
     .on("mouseleave", function() {
       return resetBubbles();
-	});
+	   });
 
 // var mainNote = svg.append("text")
 //     .attr("id", "bubbleItemNote")
@@ -93,7 +93,7 @@ bubbleObj.append("text")
     	},
     	"click": function(d, i) {
     		if (d.name === "Analysis Results") {
-	    		drawChord("","","","")
+	    		drawChord("", "", "", "", "", false, new Array())
 	    	} else {
 	    		var csvNameSplit = d.name.split(" ");
 	    		var csvName = csvNameSplit[0].toLowerCase();
@@ -102,7 +102,11 @@ bubbleObj.append("text")
 	    			csvName = csvName.concat(csvNameSplit[i].toLowerCase());
 	    		}
 	    		csvName = csvName.concat("-5.csv");
-	    		drawChart(csvName);
+          if (csvName.includes("communication")) {
+            drawChart(csvName, "communication");
+          } else {
+            drawChart(csvName, "permission");
+          }
 	    	}
     		
     		return smallBubbles();
@@ -112,19 +116,21 @@ bubbleObj.append("text")
 smallBubbles = function() {
 	d3.select("svg").remove();
   d3.select(".mainWords").remove();
+  d3.select("#mainBubble").remove();
 
-	var w1 = window.innerWidth;
-	var h1 = Math.ceil(w1 * 0.078);
+	var w = window.innerWidth;
+	var h = Math.ceil(w * 0.08);
 	var oR1 = 0;
 	var nTop1 = 0;
 
-	var svgContainer = d3.select("#mainBubble")
-		.style("height", h1 + "px");
+	var svgContainer = d3.select("#smallBubble")
+	 	.style("height", h + "px")
+    .style("border-bottom", "1px solid #ddd");
 
-	var svg = d3.select("#mainBubble").append("svg")
+	var svg = d3.select("#smallBubble").append("svg")
 	    .attr("class", "mainBubbleSVG")
-	    .attr("width", w1)
-	    .attr("height", h1);
+	    .attr("width", w)
+	    .attr("height", h);
 
 	var bubbleObj = svg.selectAll(".topBubble")
 	    .data(root.children)
@@ -132,7 +138,7 @@ smallBubbles = function() {
 	    .attr("id", function(d, i) { return "topBubbleAndText_" + i; });
 
 	nTop = root.children.length;
-	oR = w1 / (1 + 5 * nTop);
+	oR = w / (1 + 5 * nTop);
 
 	var colVals = d3.scale.category10();
 
@@ -141,8 +147,8 @@ smallBubbles = function() {
 	    .attr("id", function(d, i) { return "topBubble" + i; })
 	    .attr("r", function(d) { return oR; })
 	    .attr("cx", function(d, i) { return oR * (3 * (1 + i) - 1); })
-	    .attr("cy", h1 / 2)
-	    .style("fill", function(d, i) { return colVals(i); }) // #1f77b4
+	    .attr("cy", h / 2)
+	    .style("fill", function(d, i) { return colVals(i); })
 	    .style("opacity", 0.3)
 	    .on({
 	    	"mouseover": function(d, i) {
@@ -158,7 +164,7 @@ smallBubbles = function() {
 	    .attr("class", "topBubbleText")
 	    .attr("id", function(d, i) { return "topBubbleText" + i; })
 	    .attr("x", function(d, i) { return oR * (3 * (1 + i) - 1); })
-	    .attr("y", h1 / 2)
+	    .attr("y", h / 2)
 	    .style("fill", function(d, i) { return colVals(i); })
 	    .style("opacity", 0)
 	    .attr("font-size", 10)
@@ -177,8 +183,7 @@ smallBubbles = function() {
 	    	},
 	    	"click": function(d, i) {
 	    		if (d.name === "Analysis Results") {
-	    			// drawChord("", "", "", "");
-	    			drawChord("","","","")
+	    			drawChord("", "", "", "", "", false, new Array())
 	    		} else {
 		    		var csvNameSplit = d.name.split(" ");
 		    		var csvName = csvNameSplit[0].toLowerCase();
@@ -187,13 +192,18 @@ smallBubbles = function() {
 		    			csvName = csvName.concat(csvNameSplit[i].toLowerCase());
 		    		}
 		    		csvName = csvName.concat("-5.csv");
-		    		drawChart(csvName);
+		    		if (csvName.includes("communication")) {
+              drawChart(csvName, "communication");
+            } else {
+              drawChart(csvName, "permission");
+            }
 	    		}
 	    	}
 		});
 }
 
 resetBubbles = function() {
+
     w = window.innerWidth;
     oR = w / (1 + 3 * nTop);
 

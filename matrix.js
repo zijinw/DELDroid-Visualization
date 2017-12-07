@@ -1,44 +1,65 @@
-var columnData = ["(6) SMS", "(7) LOCATION", "(8) BLUETOOTH"];
-var drawChart = function(csvFile) {
-	var packages = new Array();
-	var components = new Array();
-	var index = -1;
-	var ids = new Array();
-	var data = new Array();
-	var columnData = new Array();
-	var columnDataWithWord = new Array();
+var previousMatrixType = "";
+var columnData = new Array();
+var columnDataWithWord = new Array();
+var packages = new Array();
+var components = new Array();
+var index = -1;
+var ids = new Array();
+var data = new Array();
+var columnData = new Array();
+var columnDataWithWord = new Array();
+
+var drawChart = function(csvFile, matrixType) {
+
+
+	if (previousMatrixType !== matrixType) {
+		columnData = new Array();
+		columnDataWithWord = new Array();
+		packages = new Array();
+		components = new Array();
+		index = -1;
+		ids = new Array();
+		data = new Array();
+		columnData = new Array();
+		columnDataWithWord = new Array();
+	}
+	
+	var fileNameArray = csvFile.split(".")[0];
+	fileNameArray = fileNameArray.split("-");
+	var fileName = "";
+	for (var i = 0; i < 3; i++) {
+		fileName += capitalizeFirstLetter(fileNameArray[i]) + " ";
+	}
 
 	d3.select("#chord").remove();
 	d3.select("#detailTable").remove();
 	d3.select("#matrix").remove();
-	var margin = { top: 50, right: 0, bottom: 100, left: 250 },
-	    width = 900 - margin.left - margin.right,
-	    height = 800 - margin.top - margin.bottom,
-	    gridSize = Math.floor(width / 24),
-	    buckets = 2,
-	    colors = ["#ffffd9","#edf8b1","#c7e9b4","#7fcdbb","#41b6c4","#1d91c0","#225ea8","#253494","#081d58"]; // alternatively colorbrewer.YlGnBu[9]
 
 	d3.csv(csvFile, function(error, csvdata) {
 		if (error) {
 			console.log(error);
 		}
-		for (var i = 0; i < csvdata.length; i++) {
-			packages.push(csvdata[i].Package);
-			components.push(csvdata[i].Component);		//Todo: parse component name
-			ids.push(i);
-			if (csvFile.includes("permission") && i == 0) {
-				var temp = new Array();
-				temp = Object.keys(csvdata[i]);
-				for (j = 3; j < temp.length - 1; j++) {
-					columnDataWithWord.push(temp[j]);
-					columnData.push(temp[j].split(" ")[0]);
+		var longestRowLabel = 0;
+		if (previousMatrixType !== matrixType) {
+			for (var i = 0; i < csvdata.length; i++) {
+				packages.push(csvdata[i].Package);
+				longestRowLabel = Math.max(longestRowLabel, csvdata[i].Component.length);
+				components.push(csvdata[i].Component);		//Todo: parse component name
+				ids.push(i);
+				if (csvFile.includes("permission") && i == 0) {
+					var temp = new Array();
+					temp = Object.keys(csvdata[i]);
+					for (j = 3; j < temp.length - 1; j++) {
+						columnDataWithWord.push(temp[j]);
+						columnData.push(temp[j].split(" ")[0]);
+					}
 				}
 			}
 		}
 		if (csvFile.includes("permission")) {
 			for (var i = 0; i < csvdata.length; i++) {
 				for (var j = 0; j < columnData.length; j++) {
-					var tempObj = {Id1: i, Id2: j, Value: csvdata[i][columnDataWithWord[j]]}
+					var tempObj = {Id1: i, Id2: j, Value: csvdata[i][columnDataWithWord[j]]};
 					data.push(tempObj);
 				}
 			}
@@ -50,6 +71,17 @@ var drawChart = function(csvFile) {
 				}
 			}
 		}
+		var margin = { top: 50, right: 0, bottom: 100, left: 200 };
+		if (longestRowLabel * 5.8 > 200) {
+			margin.left = longestRowLabel * 5.8;
+		}	    
+		var width = 1200 - margin.left - margin.right,
+	    height = 800 - margin.top - margin.bottom,
+	    gridSize = Math.floor(width / 24),
+	    buckets = 2,
+	    colors = ["#ffffd9","#edf8b1","#c7e9b4","#7fcdbb","#41b6c4","#1d91c0","#225ea8","#253494","#081d58"]; 
+
+
 		var svg = d3.select("#chartArea").append("svg")
 			.attr("id", "matrix")
 			.attr("width", width + margin.left + margin.right + components.length * gridSize)
@@ -115,12 +147,7 @@ var drawChart = function(csvFile) {
 	        	},
 	        	'click': function(d) {
 		        	if (d.Value === "1") {
-						var package1 = packages[d.Id1];
-						var package2 = packages[d.Id2];
-						var component1 = components[d.Id1];
-						var component2 = components[d.Id2];
-						// analysisResult(package1, package2, component1, component2);
-						drawChord("fromMatrix", d.Id1, d.Id2, "0");
+						drawChord("fromMatrix", d.Id1, d.Id2, "0", fileName, csvFile.includes("permission"), columnDataWithWord);
 		        	}
 		        }
 		    });
@@ -133,3 +160,8 @@ var drawChart = function(csvFile) {
 	    cards.exit().remove();
 	});
 }
+
+function capitalizeFirstLetter(string) {
+    return string.charAt(0).toUpperCase() + string.slice(1);
+}
+

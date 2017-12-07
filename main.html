@@ -61,12 +61,6 @@
 			border-bottom: 1px solid grey;
 		}
 
-		table {
-			margin-left: 900px; 
-			margin-top: -700px;
-			font: 12px sans-serif;
-		}
-
 		.mainWords {
 			margin-top: 200px;
 			margin-left: 50px;
@@ -84,21 +78,25 @@
 			font-family: 'Muli', sans-serif;
 		}
 
+		#upload {
+			margin-left: 60px;
+			margin-top: 60px;
+		}
+
 	</style>
 	<script type="text/javascript" src="http://d3js.org/d3.v3.js" charset="utf-8"></script>
 	<script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
 	<link href="https://fonts.googleapis.com/css?family=Muli:400,600" rel="stylesheet">
 </head>
 <body>
-	<div id="mainBubble">
+	<div id = "smallBubble"></div>
+	<div id = "mainBubble">
 		<div class = "mainWords">
 			<p id = "mainTitle">DELDroid Visualization</p>
 			<p id = "name">Zijin Wang, Department of Statistics</p>
 		</div>
 	</div>
-	<div id="chartArea"></div>
-	<div id="chordArea"></div>
-	<!-- <div id="detailsArea" style="float: left;"></div> -->
+	<div id = "chartArea"></div>
 	<script type="text/javascript" src="main.js"></script>
 	<script type="text/javascript" src="matrix.js"></script>
 	<script type="text/javascript" src="chord.js"></script>

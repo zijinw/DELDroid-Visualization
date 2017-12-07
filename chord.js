@@ -1,42 +1,121 @@
 var datasets = ["domain-explicit-communication-5.csv", "domain-implicit-communication-5.csv", "domain-permission-enforcement-5.csv",
 	"domain-permission-granted-5.csv", "domain-permission-usage-5.csv"];
 
-
 var packages = new Array();
 var components = new Array();
 var peattack = {};
 var isattack = {};
 var uaattack = {};
 var excludeApp = {}; // In order to simplify the chord chart
-var margin = {left:90, top:90, right:90, bottom:90},
- 	width =  window.innerWidth * 0.85 - margin.left - margin.right,
-  	height =  1000 - margin.top - margin.bottom,
-  	innerRadius = Math.min(width, height) * .29,
-  	outerRadius = innerRadius * 1.1;
+
+var widthChord = 0;
+var halfHeightChord = 0;
 
 var matrix = new Array();
 getMatrix(matrix).pipe(processMatrix(matrix));
 
-var drawChord = function(type, Id1, Id2, flag) {
-// function drawChord(matrix, type, Id1, Id2, flag) {
+var drawChord = function(type, Id1, Id2, flag, fileName, isSystem, systemColumns) { 
+	// flag only works when type is "from matrix". It means whether we have already find a malicious relationship.
 	// var d = $.Deferred();
-	console.log(excludeApp)
+	// console.log(excludeApp)
 	d3.select("#matrix").remove();
 	d3.select("#chord").remove();
 	////////////////////////////////////////////////////////////
     //////////////////////// Set-Up ////////////////////////////
     ////////////////////////////////////////////////////////////
     var names = components,
-    //   lineColors = ["#5b7cd8", "#e0663a", "#5db24a"],
-    //   opacityDefault = 0.8;
     	colors = d3.scale.category10(),
       	opacityDefault = 0.8;
+
+	var malApp = "";
+	var vulApp = "";
+   	var malComp = "";
+	var vulComp = "";
+	var attacktype = "";
+	var resource = [];
+	var pot = [];
+	var mal = "";
+	var vul = "";
+
+	var appNum = 0;
+
+	var margin = {left:90, top:90, right:90, bottom:90},
+		width =  window.innerWidth * 0.85 - margin.left - margin.right,
+		height =  1000 - margin.top - margin.bottom,
+		innerRadius = Math.min(width, height) * .29,
+		outerRadius = innerRadius * 1.1;
+
+	if (names.length > 30) {
+		innerRadius = innerRadius * (1 + names.length / 500);
+		outerRadius = innerRadius * 1.1;
+		margin.left = margin.left + names.length / 10;
+		margin.top = margin.top + names.length / 30;
+		height =  1500 - margin.top - margin.bottom;
+		width = width * 1.5
+	} 
+	widthChord = margin.left + width*9/10;
+	halfHeightChord = margin.top + height / 1.7;
+
+	if (type == "fromMatrix") {
+		malApp = packages[Id1];
+		malComp = components[Id1];
+		attacktype = "";
+		if (isSystem) {
+			vulApp = "System";
+			vulComp = systemColumns[Id2];
+		} else {
+			vulApp = packages[Id2]
+			vulComp = components[Id2]
+
+			mal = malApp + "." + malComp;
+			vul = vulApp + "." + vulComp;
+			Object.keys(peattack).forEach(function(key,index) {
+				if (mal == key) {
+					Object.keys(peattack[mal]).forEach(function(key1, index1) {
+						if (vul == key1) {
+							resource = peattack[mal][vul];
+							attacktype = "Privilege Escalation Instance";
+						}
+					})
+				}
+			});
+			if (attacktype === "") {
+				Object.keys(isattack).forEach(function(key,index) {
+					if (mal == key) {
+						Object.keys(isattack[mal]).forEach(function(key1, index1) {
+							if (vul == key1) {
+								pot.push(isattack[mal][vul]);
+								attacktype = "Intent Spoofing Instance";
+							}
+						})
+					}
+				});
+			}
+			if (attacktype === "") 
+			{
+				Object.keys(uaattack).forEach(function(key,index) {
+	    			// key: the name of the object key
+	    			// index: the ordinal position of the key within the object 
+	    			if (mal == key) {
+	    				Object.keys(uaattack[mal]).forEach(function(key1, index1) {
+	    					if (vul == key1) {
+	    						pot.push(uaattack[mal][vul]);
+								attacktype = "Unauthorized Intent Receipt Instance";
+	    					}
+	    				})
+	    			}
+				});
+			}
+		}
+	}
+
     ////////////////////////////////////////////////////////////
     /////////// Create scale and layout functions //////////////
     ////////////////////////////////////////////////////////////
-    // var colors = d3.scale.ordinal()
-    //     .domain(d3.range(names.length))
-    //   	.range(colors);
+
+	d3.select("#chordArea").remove();
+	d3.select("body").append("div")
+		.attr("id", "chordArea");
 
     var chord = d3.layout.chord()
       	.padding(1 / names.length)
@@ -51,23 +130,31 @@ var drawChord = function(type, Id1, Id2, flag) {
     var path = d3.svg.chord()
     	.radius(innerRadius);
 
+	var zoom = d3.behavior.zoom()
+	    .scaleExtent([1, 10])
+	    .on("zoom", zoomed);
+
+
 	////////////////////////////////////////////////////////////
 	////////////////////// Create SVG //////////////////////////
 	////////////////////////////////////////////////////////////
+
 	var svg = d3.select("#chordArea").append("svg")
 		.attr("id", "chord")
 		.attr("width", width + margin.left + margin.right)
 	    .attr("height", height + margin.top + margin.bottom)
 	    .append("g")
-	    .attr("transform", "translate(" + (width / 3 + 2.6 * margin.left) + "," + (height / 3 + 2.4 * margin.top) + ")");
-
-  	////////////////////////////////////////////////////////////
+	    .attr("transform", "translate(" + (width / 3 + 2.6 * margin.left) + "," + (height / 3 + 2.4 * margin.top) + ")")
+	    .call(zoom);	    
+  	
+  	/////////////////////////////////////////
+	///////////////////
   	////////////////// Draw outer Arcs /////////////////////////
   	////////////////////////////////////////////////////////////
   	var outerArcs = svg.selectAll("g.group")
     	.data(chord.groups())
     	.enter().append("g")
-    	.attr("class", "group");
+    	.attr("class", "group")
 
 	outerArcs.append("path")
 	    .on("mouseover", fade(.1))
@@ -78,9 +165,12 @@ var drawChord = function(type, Id1, Id2, flag) {
 	    .attr("id", function(d, i) { return "group" + d.index; })
 	    .attr("d", arc);
 
+
   	////////////////////////////////////////////////////////////
   	////////////////////// Append names ////////////////////////
   	////////////////////////////////////////////////////////////
+  	// Don't show the name of components to avoid messy layout
+
   	// outerArcs.append("text")
    //      .attr("x", 6)
    //      .attr("dx", 60)
@@ -97,7 +187,7 @@ var drawChord = function(type, Id1, Id2, flag) {
   	////////////////////////////////////////////////////////////
   	////////////////// Draw inner chords ///////////////////////
   	////////////////////////////////////////////////////////////
-	svg.append("g")
+  	svg.append("g")
 	    .attr("class", "chord")
 	    .selectAll("path")
 	    .data(chord.chords)
@@ -107,10 +197,13 @@ var drawChord = function(type, Id1, Id2, flag) {
 	    	var result = "";
 	    	var sourceIndex = d.source.index;
 	    	var targetIndex = d.source.subindex;
-	    	var malComp = "";
-	    	var vulComp = "";
-	    	if (type == "fromMatrix") {
-	    		if (flag == "0") {
+  			if (type == "fromMatrix") {
+	    		if (isSystem) {
+	    			if (sourceIndex == packages.length - 1 && targetIndex == Id1
+	    				|| targetIndex == packages.length - 1 && sourceIndex == Id1) {
+						result = "#0c7a2f";
+					}
+	    		} else if (flag == "0") {
 	    			malComp = packages[Id1] + "." + components[Id1];
 	    			vulComp = packages[Id2] + "." + components[Id2];
 	    		} else {
@@ -120,22 +213,21 @@ var drawChord = function(type, Id1, Id2, flag) {
 	    		malComp = packages[sourceIndex] + "." + components[sourceIndex];
 	    		vulComp = packages[targetIndex] + "." + components[targetIndex];
 	    	}
-
-	    	Object.keys(peattack).forEach(function(key,index) {
-    			// key: the name of the object key
-    			// index: the ordinal position of the key within the object 
-    			if (malComp == key) {
-    				Object.keys(peattack[malComp]).forEach(function(key1, index1) {
-    					if (vulComp == key1 && sourceIndex !== targetIndex) {
-    						// console.log(vulComp)
-    						// console.log(sourceIndex)
-    						// console.log(targetIndex)
-    						result = "#f44242";
-    						flag = "1";
-    					}
-    				})
-    			}
-			});
+	    	if (result === "") 
+	    	{
+		    	Object.keys(peattack).forEach(function(key,index) {
+	    			// key: the name of the object key
+	    			// index: the ordinal position of the key within the object
+	    			if (malComp == key) {
+	    				Object.keys(peattack[malComp]).forEach(function(key1, index1) {
+	    					if (vulComp == key1 && sourceIndex !== targetIndex && packages[sourceIndex] != packages[targetIndex]) {
+	    						result = "#f44242";
+	    						flag = "1";
+	    					}
+	    				})
+	    			}
+				});
+	    	}
 			if (result === "")
 			{
 				Object.keys(isattack).forEach(function(key,index) {
@@ -143,7 +235,7 @@ var drawChord = function(type, Id1, Id2, flag) {
 	    			// index: the ordinal position of the key within the object 
 	    			if (malComp == key) {
 	    				Object.keys(isattack[malComp]).forEach(function(key1, index1) {
-	    					if (vulComp == key1 && sourceIndex !== targetIndex) {
+	    					if (vulComp == key1 && sourceIndex !== targetIndex && packages[sourceIndex] != packages[targetIndex]) {
 	    						result = "#41b2f4";
 	    						flag = "1";
 	    					}
@@ -151,6 +243,7 @@ var drawChord = function(type, Id1, Id2, flag) {
 	    			}
 				});
 			}
+
 			if (result === "") 
 			{
 				Object.keys(uaattack).forEach(function(key,index) {
@@ -158,7 +251,7 @@ var drawChord = function(type, Id1, Id2, flag) {
 	    			// index: the ordinal position of the key within the object 
 	    			if (malComp == key) {
 	    				Object.keys(uaattack[malComp]).forEach(function(key1, index1) {
-	    					if (vulComp == key1 && sourceIndex !== targetIndex) {
+	    					if (vulComp == key1 && sourceIndex !== targetIndex && packages[sourceIndex] != packages[targetIndex]) {
 	    						result = "#a641f4";
 	    						flag = "1";
 	    					}
@@ -166,6 +259,19 @@ var drawChord = function(type, Id1, Id2, flag) {
 	    			}
 				});
 			}
+
+			if (result === "" && !isSystem && fileName !== "" && flag == "0") {
+				if (Id1 == sourceIndex && Id2 == targetIndex
+					&& Id1 == sourceIndex && Id2 == targetIndex) {
+					result = "#0c7a2f";
+				}
+
+				if (Id1 == targetIndex && Id2 == sourceIndex
+					&& Id1 == targetIndex && Id2 == sourceIndex) {
+					result = "#0c7a2f";
+				}
+			}
+
 			if (result === "") 
 			{
 				result = "none";
@@ -176,10 +282,10 @@ var drawChord = function(type, Id1, Id2, flag) {
 	    .on("click", function(d) {
 	    	var sourceIndex = d.source.index;
 	    	var targetIndex = d.source.subindex;
-	    	var malApp = "";
-	    	var malComp =  "";
-	    	var vulApp = "";
-	    	var vulComp =  "";
+
+	    	if (isSystem) {
+	    		return;
+	    	}
 
 			if (type == "fromMatrix") {
 				malApp = packages[Id1]
@@ -188,17 +294,14 @@ var drawChord = function(type, Id1, Id2, flag) {
 				vulComp = components[Id2]
 			} else {
 				malApp = packages[sourceIndex]
-	    		malComp =  components[sourceIndex];
-	    		vulApp = packages[targetIndex]
-	    		vulComp =  components[targetIndex];
+				malComp =  components[sourceIndex];
+				vulApp = packages[targetIndex]
+				vulComp =  components[targetIndex];
 			}
 
-	    	var attacktype = "";
-	    	var mal = malApp + "." + malComp;
-	    	var vul = vulApp + "." + vulComp;
-
-	    	var resource = [];
-	    	var pot = [];
+			mal = malApp + "." + malComp;
+			vul = vulApp + "." + vulComp;
+			attacktype = "";
 	    	Object.keys(peattack).forEach(function(key,index) {
     			// key: the name of the object key
     			// index: the ordinal position of the key within the object 
@@ -211,18 +314,21 @@ var drawChord = function(type, Id1, Id2, flag) {
     				})
     			}
 			});
-			Object.keys(isattack).forEach(function(key,index) {
-    			// key: the name of the object key
-    			// index: the ordinal position of the key within the object 
-    			if (mal == key) {
-    				Object.keys(isattack[mal]).forEach(function(key1, index1) {
-    					if (vul == key1) {
-    						pot.push(isattack[mal][vul]);
-    						attacktype = "Intent Spoofing Instance";
-    					}
-    				})
-    			}
-			});
+			if (attacktype === "")
+			{
+				Object.keys(isattack).forEach(function(key,index) {
+	    			// key: the name of the object key
+	    			// index: the ordinal position of the key within the object 
+	    			if (mal == key) {
+	    				Object.keys(isattack[mal]).forEach(function(key1, index1) {
+	    					if (vul == key1) {
+	    						pot.push(isattack[mal][vul]);
+	    						attacktype = "Intent Spoofing Instance";
+	    					}
+	    				})
+	    			}
+				});
+			}
 			if (attacktype === "") 
 			{
 				Object.keys(uaattack).forEach(function(key,index) {
@@ -231,6 +337,7 @@ var drawChord = function(type, Id1, Id2, flag) {
 	    			if (mal == key) {
 	    				Object.keys(uaattack[mal]).forEach(function(key1, index1) {
 	    					if (vul == key1) {
+	    						console.log("hello")
 	    						pot.push(uaattack[mal][vul]);
     							attacktype = "Unauthorized Intent Receipt Instance";
 	    					}
@@ -264,6 +371,7 @@ var drawChord = function(type, Id1, Id2, flag) {
  			slow = fast;
     	}
     }
+    groups.push({sIndex: slow, eIndex: slow, title: "System", color: colorVal(slow)});
 
   	var cD = chord.groups();
     
@@ -284,10 +392,15 @@ var drawChord = function(type, Id1, Id2, flag) {
     		.on("mouseover", function() {
 	      		svg.selectAll(".arcId")
 	      			.style("opacity", 1);
+	      		d3.select("#detailTable").style("opacity", 0);
+	      		d3.select("#caption").style("opacity", 0);
 	      	})
 	      	.on("mouseout", function() {
 	      		svg.selectAll(".arcId")
 	      			.style("opacity", 0);
+	      		d3.select("#detailTable").style("opacity", 1);
+	      		d3.select("#caption").style("opacity", 1);
+
 	      	});
     
     	// Add a text label.
@@ -311,14 +424,23 @@ var drawChord = function(type, Id1, Id2, flag) {
 	//       			.style("opacity", 0.2);
 	//       	})
 
+	// If type is "fromMatrix" and flag is "0", then we should directly give the result of details.
+	// And we should not show the circle, maybe
+	if (type == "fromMatrix") {
+		if (flag == "0") {
+			if (!isSystem) {
+				moreDetail(malApp, malComp, vulApp, vulComp, "", "", fileName);
+			} else {
+				moreDetail(malApp, malComp, "", vulComp, "", "", fileName)
+			}
+		} else {
+			moreDetail(malApp, malComp, vulApp, vulComp, resource, pot, attacktype);
+		}
+	}
+
   	////////////////////////////////////////////////////////////
   	////////////////// Extra Functions /////////////////////////
   	////////////////////////////////////////////////////////////
-	function popup() {
-	    return function(d,i) {
-	      	console.log("love");
-	    };
-	}
 
   	//Returns an event handler for fading a given chord group.
 	function fade(opacity) {
@@ -412,25 +534,30 @@ function getMatrix(matrix) {
 				if (matrix[i][j] == 0 && csvdata[i][j] == 1) {
 					matrix[i][j] = 1;
 				}
-				// if (i == j) {
-				// 	matrix[i][j] = 1;
-				// }
+				if (i == j) {
+					matrix[i][j] = 1;
+				}
+				//
+				if (j == csvdata.length - 1) {
+					matrix[i][j] = 1;
+				}
+				//
 				if (matrix[j][i] == 1) {
 					matrix[i][j] = 1;
 				}
 				if (matrix[i][j] == 1) {
 					matrix[j][i] = 1;
 				}
-				if (i != j && packages[i] == packages[j]) {
-					matrix[i][j] = 0;
-				}
+				// if (i != j && packages[i] == packages[j]) {
+				// 	matrix[i][j] = 0;
+				// }
+
 			}
 		}
 	});
 	// matrix = processMatrix(matrix)
 	// return matrix;
 	setTimeout(function() {
-    	console.log('1');
     	d.resolve();
   	}, 1000);
   	return d.promise();
@@ -554,7 +681,6 @@ function processMatrix(matrix) {
 		}
 	});
 	setTimeout(function() {
-    	console.log('2');
     	d.resolve();
   	}, 1000);
   	return d.promise();
@@ -657,23 +783,40 @@ function parseXML() {
 }
 
 function moreDetail(malApp, malComp, vulApp, vulComp, resource, pot, attacktype) {
-	var data = [
-		{ title: "Malicious Application: ", info: malApp },
-    	{ title: "Malicious Component: ", info: malComp },
-    	{ title: "Vulnerable Application: ", info: vulApp },
-    	{ title: "Vulnerable Componnet: ", info: vulComp }
-	];
-
-	if (attacktype == "Privilege Escalation Instance") {
-		for (var i = 0; i < resource.length; i++) {
-			var tempResource = { title: "Resource: ", info: resource[i] };
-			data.push(tempResource);
+	var data;
+	if (resource != "" || pot != "") {
+		data = [
+			{ title: "Malicious Application: ", info: malApp },
+	    	{ title: "Malicious Component: ", info: malComp },
+	    	{ title: "Vulnerable Application: ", info: vulApp },
+	    	{ title: "Vulnerable Componnet: ", info: vulComp }
+		];
+		if (attacktype == "Privilege Escalation Instance") {
+			for (var i = 0; i < resource.length; i++) {
+				var tempResource = { title: "Resource: ", info: resource[i] };
+				data.push(tempResource);
+			}
+		} else {
+			var tempPotApp = { title: "Potential Application: ", info: pot[0][0][0] };
+			var tempPotComp = { title: "Potential Componnet: " , info: pot[0][0][1] };
+			data.push(tempPotApp);
+			data.push(tempPotComp);
 		}
 	} else {
-		var tempPotApp = { title: "Pot Application: ", info: pot[0][0][0] };
-		var tempPotComp = { title: "Pot Componnet: " , info: pot[0][0][1] };
-		data.push(tempPotApp);
-		data.push(tempPotComp);
+		if (vulApp !== "") {
+			data = [
+				{ title: "From Application: ", info: malApp },
+				{ title: "From Component: ", info: malComp },
+				{ title: "To Application: ", info: vulApp },
+				{ title: "To Component: ", info: vulComp }
+			];
+		} else {
+			data = [
+				{ title: "From Application: ", info: malApp },
+				{ title: "From Component: ", info: malComp },
+				{ title: "To System Resource: ", info: vulComp }
+			]
+		}
 	}
 
 	var columns = ["title", "info"];
@@ -684,11 +827,15 @@ function moreDetail(malApp, malComp, vulApp, vulComp, resource, pot, attacktype)
 	d3.select("#detailTable").remove();
 	var table = d3.select("#chordArea")
 				.append("table")
-				.attr("id", "detailTable"),
+				.attr("id", "detailTable")
+				.style("margin-left", widthChord + "px")
+				.style("margin-top", -halfHeightChord + "px")
+				.style("padding-right", "20px"),
         tbody = table.append("tbody");
 
     var caption = table.append("caption")
-    			.text(attacktype);
+    			.text(attacktype)
+    			.attr("id", "caption");
 
     // create a row for each object in the data
     var rows = tbody.selectAll("tr")
@@ -707,3 +854,10 @@ function moreDetail(malApp, malComp, vulApp, vulComp, resource, pot, attacktype)
         .append("td")
         .html(function(d) { return d.value; });
 }
+
+function zoomed() {
+  svg.attr("transform", "translate(" + d3.event.translate + ")scale(" + d3.event.scale + ")");
+}
+
+
+
