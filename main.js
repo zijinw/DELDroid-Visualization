@@ -101,7 +101,7 @@ bubbleObj.append("text")
 	    			csvName = csvName.concat("-");
 	    			csvName = csvName.concat(csvNameSplit[i].toLowerCase());
 	    		}
-	    		csvName = csvName.concat("-1.csv");
+	    		csvName = csvName.concat("-5.csv");
           if (csvName.includes("communication")) {
             drawChart(csvName, "communication");
           } else {
@@ -191,7 +191,7 @@ smallBubbles = function() {
 		    			csvName = csvName.concat("-");
 		    			csvName = csvName.concat(csvNameSplit[i].toLowerCase());
 		    		}
-		    		csvName = csvName.concat("-1.csv");
+		    		csvName = csvName.concat("-5.csv");
 		    		if (csvName.includes("communication")) {
               drawChart(csvName, "communication");
             } else {

@@ -1,5 +1,5 @@
-var datasets = ["domain-explicit-communication-1.csv", "domain-implicit-communication-1.csv", "domain-permission-enforcement-1.csv",
-	"domain-permission-granted-1.csv", "domain-permission-usage-1.csv"];
+var datasets = ["domain-explicit-communication-5.csv", "domain-implicit-communication-5.csv", "domain-permission-enforcement-5.csv",
+	"domain-permission-granted-5.csv", "domain-permission-usage-5.csv"];
 
 var packages = new Array();
 var components = new Array();
@@ -56,13 +56,13 @@ var drawChord = function(type, Id1, Id2, flag, fileName, isSystem, systemColumns
 	widthChord = margin.left + width*9/10;
 	halfHeightChord = margin.top + height / 1.7;
 
-	packages.push("System Permission");
+	packages.push("System Resource");
 	if (type == "fromMatrix") {
 		malApp = packages[Id1];
 		malComp = components[Id1];
 		attacktype = "";
 		if (isSystem) {
-			vulApp = "System Permission";
+			vulApp = "System Resource";
 			vulComp = systemColumns[Id2];
 		} else {
 			vulApp = packages[Id2]
@@ -373,7 +373,7 @@ var drawChord = function(type, Id1, Id2, flag, fileName, isSystem, systemColumns
  			slow = fast;
     	}
     }
-    groups.push({sIndex: slow, eIndex: slow, title: "System Permission", color: colorVal(slow)});
+    groups.push({sIndex: slow, eIndex: slow, title: "System Resource", color: colorVal(slow)});
 
   	var cD = chord.groups();
     
@@ -523,7 +523,7 @@ function getMatrix(matrix) {
 			for (var j = 0; j < csvdata.length; j++) {
 				temp.push(Number(csvdata[i][j]));
 			}
-			temp.push(1); // for system permission
+			temp.push(1); // for system resource
 			matrix.push(temp);
 		}
 		// console.log(matrix)
@@ -718,7 +718,7 @@ function parseXML() {
 	try 
   	{
 		xmlDoc.async=false;
-		xmlDoc.load("analysisResults-1.xml");
+		xmlDoc.load("analysisResults-5.xml");
 		console.log("xmlDoc is loaded");
 
 		//privilegeEscalationInstances
