@@ -1,5 +1,5 @@
-var datasets = ["domain-explicit-communication-5.csv", "domain-implicit-communication-5.csv", "domain-permission-enforcement-5.csv",
-	"domain-permission-granted-5.csv", "domain-permission-usage-5.csv"];
+var datasets = ["domain-explicit-communication-1.csv", "domain-implicit-communication-1.csv", "domain-permission-enforcement-1.csv",
+	"domain-permission-granted-1.csv", "domain-permission-usage-1.csv"];
 
 var packages = new Array();
 var components = new Array();
@@ -56,12 +56,13 @@ var drawChord = function(type, Id1, Id2, flag, fileName, isSystem, systemColumns
 	widthChord = margin.left + width*9/10;
 	halfHeightChord = margin.top + height / 1.7;
 
+	packages.push("System Permission");
 	if (type == "fromMatrix") {
 		malApp = packages[Id1];
 		malComp = components[Id1];
 		attacktype = "";
 		if (isSystem) {
-			vulApp = "System";
+			vulApp = "System Permission";
 			vulComp = systemColumns[Id2];
 		} else {
 			vulApp = packages[Id2]
@@ -199,6 +200,8 @@ var drawChord = function(type, Id1, Id2, flag, fileName, isSystem, systemColumns
 	    	var targetIndex = d.source.subindex;
   			if (type == "fromMatrix") {
 	    		if (isSystem) {
+	    			console.log(matrix)
+	    			// console.log(sourceIndex + "," + targetIndex)
 	    			if (sourceIndex == packages.length - 1 && targetIndex == Id1
 	    				|| targetIndex == packages.length - 1 && sourceIndex == Id1) {
 						result = "#0c7a2f";
@@ -351,11 +354,10 @@ var drawChord = function(type, Id1, Id2, flag, fileName, isSystem, systemColumns
 				moreDetail(malApp, malComp, vulApp, vulComp, resource, pot, attacktype);
 			}
 	    });
-  
-	////////////////////////////////////////////////////////////
-  	//////// Draw Super Categories - By Faraz Shuja ////////////
-  	////////////////////////////////////////////////////////////
-  	//define grouping with colors
+  	/////////////////////
+  	// Draw outer circle//
+  	//////////////////////
+
   	var colorVal = d3.scale.category20();
     var groups = new Array();
     var slow = 0;
@@ -371,7 +373,7 @@ var drawChord = function(type, Id1, Id2, flag, fileName, isSystem, systemColumns
  			slow = fast;
     	}
     }
-    groups.push({sIndex: slow, eIndex: slow, title: "System", color: colorVal(slow)});
+    groups.push({sIndex: slow, eIndex: slow, title: "System Permission", color: colorVal(slow)});
 
   	var cD = chord.groups();
     
@@ -510,7 +512,8 @@ function getMatrix(matrix) {
 		if (error) {
 			console.log(error);
 		}
-		for (var i = 0; i < csvdata.length; i++) {
+		var i = 0;
+		for (i = 0; i < csvdata.length; i++) {
 			// insert package
 			packages.push(csvdata[i].Package);
 			// insert component
@@ -520,7 +523,17 @@ function getMatrix(matrix) {
 			for (var j = 0; j < csvdata.length; j++) {
 				temp.push(Number(csvdata[i][j]));
 			}
+			temp.push(1); // for system permission
 			matrix.push(temp);
+		}
+		// console.log(matrix)
+		if (i == csvdata.length) {
+			var temp = new Array();
+			for (var j = 0; j < csvdata.length + 1; j++) {
+				temp.push(1);
+			}
+			matrix.push(temp);
+			i++;
 		}
 	});
 
@@ -538,9 +551,9 @@ function getMatrix(matrix) {
 					matrix[i][j] = 1;
 				}
 				//
-				if (j == csvdata.length - 1) {
-					matrix[i][j] = 1;
-				}
+				// if (j == csvdata.length - 1) {
+				// 	matrix[i][j] = 1;
+				// }
 				//
 				if (matrix[j][i] == 1) {
 					matrix[i][j] = 1;
@@ -555,6 +568,9 @@ function getMatrix(matrix) {
 			}
 		}
 	});
+
+
+
 	// matrix = processMatrix(matrix)
 	// return matrix;
 	setTimeout(function() {
@@ -702,7 +718,7 @@ function parseXML() {
 	try 
   	{
 		xmlDoc.async=false;
-		xmlDoc.load("analysisResults-5.xml");
+		xmlDoc.load("analysisResults-1.xml");
 		console.log("xmlDoc is loaded");
 
 		//privilegeEscalationInstances
