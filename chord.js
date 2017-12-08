@@ -15,14 +15,10 @@ var matrix = new Array();
 getMatrix(matrix).pipe(processMatrix(matrix));
 
 var drawChord = function(type, Id1, Id2, flag, fileName, isSystem, systemColumns) { 
-	// flag only works when type is "from matrix". It means whether we have already find a malicious relationship.
-	// var d = $.Deferred();
-	// console.log(excludeApp)
+
 	d3.select("#matrix").remove();
 	d3.select("#chord").remove();
-	////////////////////////////////////////////////////////////
-    //////////////////////// Set-Up ////////////////////////////
-    ////////////////////////////////////////////////////////////
+
     var names = components,
     	colors = d3.scale.category10(),
       	opacityDefault = 0.8;
@@ -110,10 +106,6 @@ var drawChord = function(type, Id1, Id2, flag, fileName, isSystem, systemColumns
 		}
 	}
 
-    ////////////////////////////////////////////////////////////
-    /////////// Create scale and layout functions //////////////
-    ////////////////////////////////////////////////////////////
-
 	d3.select("#chordArea").remove();
 	d3.select("body").append("div")
 		.attr("id", "chordArea");
@@ -136,10 +128,6 @@ var drawChord = function(type, Id1, Id2, flag, fileName, isSystem, systemColumns
 	    .on("zoom", zoomed);
 
 
-	////////////////////////////////////////////////////////////
-	////////////////////// Create SVG //////////////////////////
-	////////////////////////////////////////////////////////////
-
 	var svg = d3.select("#chordArea").append("svg")
 		.attr("id", "chord")
 		.attr("width", width + margin.left + margin.right)
@@ -148,10 +136,7 @@ var drawChord = function(type, Id1, Id2, flag, fileName, isSystem, systemColumns
 	    .attr("transform", "translate(" + (width / 3 + 2.6 * margin.left) + "," + (height / 3 + 2.4 * margin.top) + ")")
 	    .call(zoom);	    
   	
-  	/////////////////////////////////////////
-	///////////////////
-  	////////////////// Draw outer Arcs /////////////////////////
-  	////////////////////////////////////////////////////////////
+
   	var outerArcs = svg.selectAll("g.group")
     	.data(chord.groups())
     	.enter().append("g")
@@ -166,10 +151,6 @@ var drawChord = function(type, Id1, Id2, flag, fileName, isSystem, systemColumns
 	    .attr("id", function(d, i) { return "group" + d.index; })
 	    .attr("d", arc);
 
-
-  	////////////////////////////////////////////////////////////
-  	////////////////////// Append names ////////////////////////
-  	////////////////////////////////////////////////////////////
   	// Don't show the name of components to avoid messy layout
 
   	// outerArcs.append("text")
@@ -185,9 +166,6 @@ var drawChord = function(type, Id1, Id2, flag, fileName, isSystem, systemColumns
    //      .style("font-size", function(d) { return 9 + 100 * (d.endAngle - d.startAngle); })
    //      .text(function(chords, i){ return names[i]; });
 
-  	////////////////////////////////////////////////////////////
-  	////////////////// Draw inner chords ///////////////////////
-  	////////////////////////////////////////////////////////////
   	svg.append("g")
 	    .attr("class", "chord")
 	    .selectAll("path")
@@ -354,9 +332,6 @@ var drawChord = function(type, Id1, Id2, flag, fileName, isSystem, systemColumns
 				moreDetail(malApp, malComp, vulApp, vulComp, resource, pot, attacktype);
 			}
 	    });
-  	/////////////////////
-  	// Draw outer circle//
-  	//////////////////////
 
   	var colorVal = d3.scale.category20();
     var groups = new Array();
@@ -421,11 +396,6 @@ var drawChord = function(type, Id1, Id2, flag, fileName, isSystem, systemColumns
         	.style("opacity", 0);
 	}
 
-	// .on("mouseover", function() {
-	//       		svg.selectAll("#arcId" + i)
-	//       			.style("opacity", 0.2);
-	//       	})
-
 	// If type is "fromMatrix" and flag is "0", then we should directly give the result of details.
 	// And we should not show the circle, maybe
 	if (type == "fromMatrix") {
@@ -440,10 +410,6 @@ var drawChord = function(type, Id1, Id2, flag, fileName, isSystem, systemColumns
 		}
 	}
 
-  	////////////////////////////////////////////////////////////
-  	////////////////// Extra Functions /////////////////////////
-  	////////////////////////////////////////////////////////////
-
   	//Returns an event handler for fading a given chord group.
 	function fade(opacity) {
 	    return function(d,i) {
@@ -452,37 +418,6 @@ var drawChord = function(type, Id1, Id2, flag, fileName, isSystem, systemColumns
 	      		.transition()
 	          	.style("opacity", opacity);
 	    };
-	}
-
-    //Highlight hovered over chord
-  	function mouseoverChord(d,i) {
-	    //Decrease opacity to all
-	    svg.selectAll("path.chord")
-	      	.transition()
-	      	.style("opacity", 0.1);
-	    //Show hovered over chord with full opacity
-	    d3.select(this)
-	      	.transition()
-	        .style("opacity", 1);
-
-	    //Define and show the tooltip over the mouse location
-	    $(this).popover({
-	    	//placement: 'auto top',
-	      	title: 'test',
-	      	placement: 'right',
-	      	container: 'body',
-	      	animation: false,
-	      	offset: "20px -100px",
-	      	followMouse: true,
-	      	trigger: 'click',
-	      	html : true,
-	      	content: function() {
-	        	return "<p style='font-size: 11px; text-align: center;'><span style='font-weight:900'>"  +
-	             	"</span> text <span style='font-weight:900'>"  +
-	             	"</span> folgt hier <span style='font-weight:900'>" + "</span> movies </p >"; 
-	        }
-	    });
-	    $(this).popover('show');
 	}
 
   	//Bring all chords back to default opacity
@@ -550,29 +485,16 @@ function getMatrix(matrix) {
 				if (i == j) {
 					matrix[i][j] = 1;
 				}
-				//
-				// if (j == csvdata.length - 1) {
-				// 	matrix[i][j] = 1;
-				// }
-				//
 				if (matrix[j][i] == 1) {
 					matrix[i][j] = 1;
 				}
 				if (matrix[i][j] == 1) {
 					matrix[j][i] = 1;
 				}
-				// if (i != j && packages[i] == packages[j]) {
-				// 	matrix[i][j] = 0;
-				// }
-
 			}
 		}
 	});
 
-
-
-	// matrix = processMatrix(matrix)
-	// return matrix;
 	setTimeout(function() {
     	d.resolve();
   	}, 1000);

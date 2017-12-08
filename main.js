@@ -31,16 +31,6 @@ var svg = d3.select("#mainBubble").append("svg")
       return resetBubbles();
 	   });
 
-// var mainNote = svg.append("text")
-//     .attr("id", "bubbleItemNote")
-//     .attr("x", 10)
-//     .attr("y", h) //w / 2 - 15
-//     .attr("font-size", 12)
-//     .attr("dominant-baseline", "middle")
-//     .attr("alignment-baseline", "middle")
-//     .style("fill", "#888888")
-//     .text(function(d) { return "DELDroid Visualization"; });
-
 var bubbleObj = svg.selectAll(".topBubble")
     .data(root.children)
     .enter().append("g")
@@ -210,12 +200,10 @@ resetBubbles = function() {
     h = Math.ceil(w / nTop * 2.5);
     svgContainer.style("height", h + "px");
 
-    // mainNote.attr("y", h - 15);
 
     svg.attr("width", w);
     svg.attr("height", h);
 
-    // d3.select("#bubbleItemNote").text("DELDroid Visualization");
 
     var t = svg.transition()
         .duration(650);
@@ -245,7 +233,6 @@ resetBubbles = function() {
 }
 
 function activateBubble(d, i) {
-  // increase this bubble and decrease others
   var t = svg.transition()
       .duration(d3.event.altKey ? 7500 : 350);
 
